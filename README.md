@@ -201,28 +201,34 @@ Test deployment and rollback locally with check_deploy.sh.
 Use semantic versioning (version="2.0.0") in workflow inputs.
 
 
-## ✅ Submission Requirements
 
-Complete the lab as described and save your work in this repository:
+# Deployment Documentation
 
-Testing Workflows
+## Blue/Green Deployment
+- Blue and Green S3 buckets as deployment targets
+- Only one environment active at a time
+- Rollback is instant: just switch active environment
 
-Terraform validation
+## Deployment Workflows
+- `deploy.yml` → Deploy new version to inactive environment, health-check, switch active environment
+- `rollback.yml` → Switch back to previous environment, record reason
 
-TFLint configuration and execution
+## Versioning and Environment Labels
+- HTML files include version labels, e.g. `<p>Version 2.0.0 — Deployed to Green</p>`
+- `deployment.json` tracks active environment, deployed_by, timestamp, and history
 
-Security scanning with Checkov
+## Terraform Outputs
+- Output values verified with `terraform output`
+- Infrastructure state documented clearly
 
-Custom compliance tests
+## Testing Strategy
+- Terraform validation: `terraform validate`
+- Linting: `tflint`
+- Security scanning: `checkov`
+- Custom compliance checks with scripts (`check_deploy.sh`)
 
-Infrastructure Code
+## Recommendations
+- Use pre-commit hooks for validation before push
+- Always update `deployment.json` after deployment
 
-Working Terraform configuration
 
-Proper resource configuration
-
-Test Documentation
-
-Testing strategy explanation
-
-Test coverage documentation
