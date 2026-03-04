@@ -91,54 +91,114 @@ Green — http://deploy-lab-maryam-ironhack-green.s3-website-us-east-1.amazonaws
 At any time, only one environment is active, tracked via deployment.json.
 
 
-## Workflows
-Deploy & Switch (.github/workflows/deploy.yml)
 
-Reads deployment.json to determine the inactive environment.
+                ┌───────────────┐
+                │  GitHub Repo  │
+                └───────┬───────┘
+                        │ push / workflow_dispatch
+                        ▼
+                ┌────────────────┐
+                │ GitHub Actions │
+                │  Workflows     │
+                └───────┬────────┘
+         ┌───────────────┴───────────────┐
+         ▼                               ▼
+   ┌─────────────┐                 ┌─────────────┐
+   │  S3 Blue    │                 │  S3 Green   │
+   │ Website     │                 │ Website     │
+   └─────────────┘                 └─────────────┘
+         ▲                               ▲
+         │           Health Check        │
+         └───────────────┬───────────────┘
+                         ▼
+                  deployment.json
+          (tracks active environment, version, history)
 
-Deploys new content to the inactive bucket.
 
-Performs a health check (expects HTTP 200).
 
-Switches active_environment in deployment.json.
+## WorkflowsDeploy (.github/workflows/deploy.yml)
 
-Commits the updated deployment state back to the repository.
+Detect inactive environment (blue or green) from deployment.json.
+
+Deploy new content to the inactive bucket.
+
+Health-check the deployment (HTTP 200).
+
+Switch active_environment in deployment.json.
+
+Commit and push the updated state to GitHub.
 
 Rollback (.github/workflows/rollback.yml)
 
-Reads deployment.json to identify the currently active environment.
+Detect currently active environment from deployment.json.
 
-Switches back to the previous environment (no redeployment needed).
+Switch back to the previous environment (no redeployment needed).
 
-Records the rollback reason in the deployment history.
+Record rollback reason in deployment.json history.
 
-Commits the updated state back to the repository.
+Commit and push the updated state.
 
+Deployment State (deployment.json)
 
-##Deployment State (deployment.json)
+Tracks:
 
-This file serves as the single source of truth, tracking:
+active_environment: currently active environment (blue or green)
 
-Active environment (blue or green)
+last_deployed: timestamp
 
-Current version deployed
+deployed_by: username or GitHub actor
 
-Deployer (github.actor)
+version: deployed version
 
-Timestamp of deployment
+history: full audit trail of deployments and rollbacks
 
-Full history of deployments and rollbacks
+Example:
 
+{
+  "active_environment": "blue",
+  "last_deployed": "2026-02-26T10:00:00Z",
+  "deployed_by": "initial-setup",
+  "version": "1.0.0",
+  "history": [
+    {
+      "environment": "blue",
+      "version": "1.0.0",
+      "timestamp": "2026-02-26T10:00:00Z",
+      "action": "initial-deploy"
+    }
+  ]
+}
+Usage
+Trigger Deployment
+gh workflow run deploy.yml -f version="2.0.0"
+gh run watch
+Trigger Rollback
+gh workflow run rollback.yml -f reason="Testing rollback"
+gh run watch
+Verify Active Environment
+cat deployment.json
+./check_deploy.sh
+Key Learnings
 
-## Key Learnings
+Blue/green deployment ensures zero downtime.
 
-Blue/Green deployments eliminate downtime — traffic switches instantly.
+Inactive environment is always ready for next deploy.
 
-The inactive environment is always ready for the next deployment.
+Rollback is instant — just switch the pointer.
 
-Rollback is instant — simply switch the pointer back.
+Deployment history provides an audit trail.
 
-Deployment history provides a full audit trail for traceability.
+GitHub Actions automates deployment and rollback.
+
+Notes / Tips
+
+Always add .terraform/ to .gitignore to avoid committing large provider files.
+
+Ensure AWS credentials are stored as GitHub Secrets: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY.
+
+Test deployment and rollback locally with check_deploy.sh.
+
+Use semantic versioning (version="2.0.0") in workflow inputs.
 
 
 ## ✅ Submission Requirements
