@@ -1,0 +1,44 @@
+name: Deploy Website
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to deploy'
+        required: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up AWS CLI
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Deploy to S3
+        run: |
+          VERSION=${{ github.event.inputs.version }}
+          ACTIVE_ENV=$(jq -r '.active_environment' deployment.json)
+          if [ "$ACTIVE_ENV" == "blue" ]; then
+            TARGET_BUCKET="deploy-lab-maryam-ironhack-green"
+          else
+            TARGET_BUCKET="deploy-lab-maryam-ironhack-blue"
+          fi
+          aws s3 sync app/ s3://$TARGET_BUCKET/ --delete
+          echo "Deployment $VERSION done to $TARGET_BUCKET"
+
+      - name: Update deployment state
+        run: |
+          jq 'if .active_environment=="blue" then .active_environment="green" else .active_environment="blue" end | .version="${{ github.event.inputs.version }}" | .timestamp=now' deployment.json > tmp.json
+          mv tmp.json deployment.json
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add deployment.json
+          git commit -m "Update deployment state after version ${{ github.event.inputs.version }}"
+          git push
