@@ -65,7 +65,75 @@ Initial state committed to the repo:
 }
 ```
 
-<!-- LIFECYCLE-RESULTS -->
+### 1. Deploy & Switch — run [31084537174](https://github.com/Draian123/ce-lab-deployment-strategies/actions/runs/31084537174)
+
+Triggered via `workflow_dispatch` from the Actions tab with `version = 2.0.0`.
+**Conclusion: success**, 15 seconds.
+
+The workflow read `active_environment = blue`, therefore targeted **green**, uploaded
+`app/green/index.html` to `deploy-lab-draian123-green`, health-checked the endpoint,
+and only then switched the pointer.
+
+Resulting `deployment.json` (commit `091cbbf` — "Deploy v2.0.0 to green"):
+
+```json
+{
+  "active_environment": "green",
+  "last_deployed": "2026-08-06T08:21:18Z",
+  "deployed_by": "Draian123",
+  "version": "2.0.0",
+  "history": [
+    { "environment": "blue",  "version": "1.0.0", "timestamp": "2026-02-26T10:00:00Z", "action": "initial-deploy" },
+    { "environment": "green", "version": "2.0.0", "timestamp": "2026-08-06T08:21:18Z", "action": "deploy-switch" }
+  ]
+}
+```
+
+`active_environment` flipped **blue → green**, `version` advanced to 2.0.0, `deployed_by`
+captured the triggering actor, and a `deploy-switch` entry was appended to `history`.
+
+### 2. Rollback — run [31084654683](https://github.com/Draian123/ce-lab-deployment-strategies/actions/runs/31084654683)
+
+Triggered with `reason = "Testing rollback procedure"`. **Conclusion: success.**
+
+No content was uploaded and no infrastructure changed — blue was still running the whole
+time, so the rollback is purely a pointer flip. The previous version was read from
+`history[-2]`.
+
+Resulting `deployment.json` (commit `ec7e4a7` — "Rollback to blue (v1.0.0)"):
+
+```json
+{
+  "active_environment": "blue",
+  "last_deployed": "2026-08-06T08:22:57Z",
+  "deployed_by": "Draian123",
+  "version": "1.0.0",
+  "history": [
+    { "environment": "blue",  "version": "1.0.0", "timestamp": "2026-02-26T10:00:00Z", "action": "initial-deploy" },
+    { "environment": "green", "version": "2.0.0", "timestamp": "2026-08-06T08:21:18Z", "action": "deploy-switch" },
+    { "environment": "blue",  "version": "1.0.0", "timestamp": "2026-08-06T08:22:57Z", "action": "rollback",
+      "reason": "Testing rollback procedure" }
+  ]
+}
+```
+
+`active_environment` reverted **green → blue**, `version` reverted to 1.0.0, and the
+rollback reason was recorded in `history`.
+
+### Audit trail
+
+Both workflows committed and pushed their state change, so the deployment history is
+visible in `git log` as well as in the JSON:
+
+```
+ec7e4a7 Rollback to blue (v1.0.0)
+091cbbf Deploy v2.0.0 to green
+fbb86ab Lab M5.06: Blue/Green Deployment Strategies
+```
+
+Elapsed time from deploy to completed rollback: **1 minute 39 seconds** — comfortably
+inside the "rollback takes under a minute" target from the lab scenario, since the
+rollback itself ran in seconds.
 
 ## Summary
 
@@ -78,5 +146,8 @@ Initial state committed to the repo:
 | Green website reachable (HTTP 200) | PASS |
 | Blue and green serve distinct content | PASS |
 | `deployment.json` valid and tracking `blue` | PASS |
-| Deploy workflow — blue → green | pending workflow run |
-| Rollback workflow — green → blue | pending workflow run |
+| Deploy workflow — targets inactive env, health-checks, switches blue → green | PASS |
+| Deploy workflow — commits updated state back to `main` | PASS |
+| Rollback workflow — reverts green → blue with reason recorded | PASS |
+| Rollback workflow — commits updated state back to `main` | PASS |
+| `history` records all three actions with timestamps | PASS |
