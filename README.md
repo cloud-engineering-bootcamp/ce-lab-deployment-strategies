@@ -31,6 +31,13 @@ source of truth for which.
 | Blue | `deploy-lab-draian123-blue` | http://deploy-lab-draian123-blue.s3-website-us-east-1.amazonaws.com |
 | Green | `deploy-lab-draian123-green` | http://deploy-lab-draian123-green.s3-website-us-east-1.amazonaws.com |
 
+> **These URLs are no longer live.** The infrastructure was applied, both environments were
+> verified serving distinct content, the full deploy → rollback lifecycle was exercised
+> against them, and then everything was torn down with `terraform destroy` to avoid leaving
+> public buckets running indefinitely. Captured evidence from while they were live —
+> HTTP status codes, page content, and both workflow runs — is in
+> [`docs/test-results.md`](docs/test-results.md). Run `terraform apply` to recreate them.
+
 > **Naming note:** S3 bucket names are globally unique across *all* AWS accounts, so the
 > lab's plain `deploy-lab` prefix collides with other students. `var.project_name` is set
 > to `deploy-lab-draian123`, and the same value is set as `PROJECT_NAME` in both workflows
@@ -148,13 +155,17 @@ window that in-place overwrite creates.
 
 ## Cleanup
 
+Completed — all 8 resources destroyed after the lifecycle test.
+
 ```bash
 aws s3 rm s3://deploy-lab-draian123-blue  --recursive
 aws s3 rm s3://deploy-lab-draian123-green --recursive
 terraform destroy -auto-approve
 ```
 
-Buckets must be emptied first — Terraform cannot delete a non-empty bucket.
+Buckets must be emptied first — Terraform cannot delete a non-empty bucket. Deleting the
+objects is what forced the two-step: `terraform destroy` alone fails with
+`BucketNotEmpty`.
 
 ## Submission
 

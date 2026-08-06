@@ -135,6 +135,34 @@ Elapsed time from deploy to completed rollback: **1 minute 39 seconds** — comf
 inside the "rollback takes under a minute" target from the lab scenario, since the
 rollback itself ran in seconds.
 
+## Teardown
+
+Run after all checks above passed, to avoid leaving publicly-readable buckets running:
+
+```
+$ aws s3 rm s3://deploy-lab-draian123-blue --recursive
+delete: s3://deploy-lab-draian123-blue/index.html
+$ aws s3 rm s3://deploy-lab-draian123-green --recursive
+delete: s3://deploy-lab-draian123-green/index.html
+
+$ terraform destroy -auto-approve
+aws_s3_bucket_policy.blue: Destruction complete after 1s
+aws_s3_bucket_policy.green: Destruction complete after 1s
+aws_s3_bucket_public_access_block.blue: Destruction complete after 0s
+aws_s3_bucket_public_access_block.green: Destruction complete after 0s
+aws_s3_bucket.blue: Destruction complete after 0s
+aws_s3_bucket.green: Destruction complete after 0s
+
+Destroy complete! Resources: 8 destroyed.
+
+$ aws s3 ls
+(no buckets)
+```
+
+Terraform destroys in reverse dependency order — policies and access blocks first, then
+the buckets themselves. The objects had to be removed separately first; Terraform cannot
+delete a non-empty bucket and fails with `BucketNotEmpty`.
+
 ## Summary
 
 | Check | Status |
