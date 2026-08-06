@@ -1,8 +1,8 @@
 {
-  "active_environment": "blue",
-  "last_deployed": "2026-08-06T10:33:34Z",
+  "active_environment": "green",
+  "last_deployed": "2026-08-06T10:36:10Z",
   "deployed_by": "adnannooruddin21-hue",
-  "version": "1.0.0",
+  "version": "3.0.0",
   "history": [
     {
       "environment": "blue",
@@ -22,6 +22,12 @@
       "timestamp": "2026-08-06T10:33:34Z",
       "action": "rollback",
       "reason": "Testing rollback procedure"
+    },
+    {
+      "environment": "green",
+      "version": "3.0.0",
+      "timestamp": "2026-08-06T10:36:10Z",
+      "action": "deploy-switch"
     }
   ]
 }
