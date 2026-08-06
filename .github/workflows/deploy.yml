@@ -49,7 +49,7 @@ jobs:
         run: |
           terraform init -backend=false
           TARGET="${{ steps.env.outputs.target }}"
-          BUCKET_NAME="deploy-lab-${TARGET}"
+          BUCKET_NAME="deploy-lab-${TARGET}-website"
           echo "name=$BUCKET_NAME" >> "$GITHUB_OUTPUT"
  
       - name: Deploy to target environment
