@@ -1,0 +1,33 @@
+{
+  "active_environment": "green",
+  "last_deployed": "2026-08-06T10:36:10Z",
+  "deployed_by": "adnannooruddin21-hue",
+  "version": "3.0.0",
+  "history": [
+    {
+      "environment": "blue",
+      "version": "1.0.0",
+      "timestamp": "2026-02-26T10:00:00Z",
+      "action": "initial-deploy"
+    },
+    {
+      "environment": "green",
+      "version": "2.0.0",
+      "timestamp": "2026-08-06T10:28:35Z",
+      "action": "deploy-switch"
+    },
+    {
+      "environment": "blue",
+      "version": "1.0.0",
+      "timestamp": "2026-08-06T10:33:34Z",
+      "action": "rollback",
+      "reason": "Testing rollback procedure"
+    },
+    {
+      "environment": "green",
+      "version": "3.0.0",
+      "timestamp": "2026-08-06T10:36:10Z",
+      "action": "deploy-switch"
+    }
+  ]
+}
