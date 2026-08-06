@@ -1,95 +1,53 @@
 # Lab M5.06 - Deployment Strategies
 
-**Cloud Engineering Bootcamp - Week 5, Day 3**  
-**Module:** Cloud Automation & CI/CD
+## Architecture
 
-## Start Here: Fork, Clone, and Submit
+Two S3 static website buckets serve as deployment targets:
+- **Blue** — `deploy-lab-pk14-blue.s3-website-us-east-1.amazonaws.com`
+- **Green** — `deploy-lab-pk14-green.s3-website-us-east-1.amazonaws.com`
 
-You will complete this lab by working in **your own fork** of the lab repository and submitting a **Pull Request (PR)**.
+Only one is "active" at a time, tracked by `deployment.json`.
 
-1. **Fork the lab repository** to your GitHub account.
-2. **Clone your fork** locally:
-   ```bash
-   git clone https://github.com/<your-github-username>/ce-lab-deployment-strategies.git
-   cd ce-lab-deployment-strategies
-   ```
-3. **Follow all instructions below** and save your work in this repo (files, screenshots, and notes).
-4. **When finished, submit your work:**
-   - `git add` → `git commit` → `git push`
-   - Open a **Pull Request** from your fork back to the original lab repo
-   - Copy the **PR URL** and paste it into the **Lab Submission** field in the Student Portal
+## Workflows
 
-## 📋 Lab Overview
+### Deploy & Switch (`.github/workflows/deploy.yml`)
+1. Reads `deployment.json` to find the inactive environment
+2. Deploys new content to the inactive bucket
+3. Health-checks the deployment (HTTP 200)
+4. Switches `active_environment` in `deployment.json`
+5. Commits the updated state
 
-Implement different deployment strategies including blue/green, canary, and rolling deployments to achieve zero-downtime releases.
+### Rollback (`.github/workflows/rollback.yml`)
+1. Reads `deployment.json` to find the currently active environment
+2. Switches back to the previous environment (no redeployment needed)
+3. Records rollback reason in history
+4. Commits the updated state
 
-## 🎯 Learning Objectives
+## Deployment State (`deployment.json`)
+Tracks active environment, version, deployer, timestamp, and full history.
 
-- Implement blue/green deployment strategy
-- Configure canary deployments with traffic splitting
-- Set up rolling update deployments
-- Implement automated rollback procedures
-- Monitor deployment health and metrics
+## Key Learnings (Blue/Green)
+- Blue/green eliminates downtime during deployments
+- The inactive environment is always ready for the next deploy
+- Rollback is instant — just switch the pointer
+- Deployment history provides an audit trail
 
-## 📁 Repository Structure
+---
 
-```
-ce-lab-deployment-strategies/
-├── .github/
-│   └── workflows/
-│       ├── blue-green-deploy.yml
-│       ├── canary-deploy.yml
-│       └── rolling-deploy.yml
-├── terraform/
-│   ├── blue-green/
-│   ├── canary/
-│   └── rolling/
-├── README.md
-└── .gitignore
-```
+## Canary Deployment
 
-## ✅ Submission Requirements
+*(Section in progress — architecture, workflow, and key learnings to be added.)*
 
-1. **Deployment Workflows**
-   - Blue/green deployment automation
-   - Canary deployment with gradual rollout
-   - Rolling update implementation
+## Rolling Updates
 
-2. **Infrastructure Code**
-   - Load balancer configuration
-   - Target group management
-   - Health check configuration
+*(Section in progress — architecture, workflow, and key learnings to be added.)*
 
-3. **Rollback Procedures**
-   - Automated rollback on failure
-   - Manual rollback capability
+## Strategy Comparison
 
-4. **Documentation**
-   - Strategy comparison
-   - Deployment process documentation
+| Strategy | Downtime | Rollback Speed | Infra Cost | Blast Radius |
+|---|---|---|---|---|
+| Blue/Green | None | Instant (pointer switch) | 2x (both envs running) | Full, but easy to revert |
+| Canary | None | Fast (route traffic back) | Slightly higher (partial extra capacity) | Small, limited to canary % |
+| Rolling | None | Slower (must roll back instance by instance) | Standard (no duplicate full env) | Gradual, one batch at a time |
 
-**Reminder:** After pushing your work and opening a PR:
-- Copy the **PR URL**
-- Paste it into the **Lab Submission** field in the Student Portal
-
-## 🎓 Grading Rubric
-
-| Criteria | Points |
-|----------|--------|
-| **Blue/Green Deployment** | 30 |
-| **Canary Deployment** | 30 |
-| **Rolling Updates** | 25 |
-| **Documentation** | 15 |
-| **Total** | 100 |
-
-## 💡 Tips
-
-- Test deployments with a simple application first
-- Implement health checks before deployment
-- Use CloudWatch metrics for monitoring
-- Practice rollback procedures
-
-## 📚 Resources
-
-- [AWS Deployment Strategies](https://docs.aws.amazon.com/whitepapers/latest/overview-deployment-options/deployment-strategies.html)
-- [GitHub Deployments API](https://docs.github.com/en/rest/deployments)
+*(Fill in specifics once Canary and Rolling sections are implemented and tested.)*
