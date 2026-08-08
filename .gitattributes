@@ -1,0 +1,3 @@
+# Keep LF endings so shell snippets and JSON stay portable to Linux CI runners.
+*.sh text eol=lf
+*.json text eol=lf
